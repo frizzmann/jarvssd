@@ -8,9 +8,10 @@
 <style>
 :root{--g:#ffffff12;--b:#ffffff26;--ink:#f4eefc;--acc:#a78bfa;--acc2:#22d3ee}
 html,body{margin:0;height:100%;background:radial-gradient(120% 90% at 50% 0%,#241247,#07040f 62%);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif;overflow:hidden}
-#v,#ov,#g{position:fixed;inset:0;width:100%;height:100%}
-#v,#ov{object-fit:cover;transform:scaleX(-1);pointer-events:none}
-#v{opacity:.3}#g{touch-action:none}
+#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#cam{position:fixed;right:14px;top:calc(14px + env(safe-area-inset-top,0px));width:min(34vw,280px);aspect-ratio:4/3;border-radius:18px;overflow:hidden;border:1px solid var(--b);background:#000;z-index:4;opacity:0;pointer-events:none;transition:opacity .8s;box-shadow:0 10px 40px #000a}
+#cam.on{opacity:1}
+#v,#ov{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);pointer-events:none}
 .glass{background:var(--g);border:1px solid var(--b);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px}
 button{font:inherit;font-weight:600;padding:10px 20px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#0b0618;cursor:pointer;transition:transform .15s,opacity .2s}
 button:hover{transform:translateY(-1px)}button.gh{background:transparent;color:var(--ink);border:1px solid var(--b)}
@@ -30,9 +31,8 @@ summary{cursor:pointer;font-weight:600}#help ul{margin:8px 0 0;padding-left:18px
 </style>
 </head>
 <body>
-<video id="v" playsinline muted></video>
 <canvas id="g"></canvas>
-<canvas id="ov"></canvas>
+<div id="cam"><video id="v" playsinline muted></video><canvas id="ov"></canvas></div>
 <div id="intro"><div id="card" class="glass">
   <h1>Zarrachalar</h1>
   <p>300 000 zarracha, 3D. Ikki qo’l bilan boshqaring.</p>
@@ -128,9 +128,7 @@ let camOn=false,hand,face,lastFace,lastT=-1,fr=0,seen=false,ptr=false,jaw=false,
 const vid=$('v'),ov=$('ov'),octx=ov.getContext('2d');let du;
 const sm=[null,null],prevPalm=[null,null],pend=[{m:'',c:0},{m:'',c:0}],stable=[null,null];
 const MN={con:'yig’ish',draw:'chizish',swirl:'girdob',hue:'rang',open:'shakl',idle:'kutish'};
-function toW(p){const w=vid.videoWidth,h=vid.videoHeight,s=Math.max(innerWidth/w,innerHeight/h),
- x=(p.x*w*s-(w*s-innerWidth)/2)/innerWidth,y=(p.y*h*s-(h*s-innerHeight)/2)/innerHeight;
- return new V3((.5-x)*VW,(.5-y)*VH,-p.z*3)}
+function toW(p){return new V3((.5-p.x)*VW,(.5-p.y)*VH,-p.z*3)}
 function hud(md){[0,1].forEach(i=>{const t='Qo’l '+(i+1)+': '+(md[i]?MN[md[i]]+(md[i]==='open'?' · '+NAMES[G[i].cur]:''):'yo’q'),e=$('h'+i);if(e.textContent!==t)e.textContent=t})}
 
 function an(i,l0,dt){
@@ -185,7 +183,7 @@ $('cb').onclick=async()=>{
   const fs=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'),m='https://storage.googleapis.com/mediapipe-models/';
   hand=await HandLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:m+'hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:2});
   face=await FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:m+'face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true});
-  du=new DrawingUtils(octx);camOn=true;done();
+  du=new DrawingUtils(octx);camOn=true;$('cam').classList.add('on');done();
  }catch(e){$('st').textContent='Kamera ochilmadi: '+e.message;$('cb').disabled=$('sk').disabled=false}
 };
 addEventListener('pointermove',e=>{if(camOn)return;ptr=true;const x=e.clientX/innerWidth,y=e.clientY/innerHeight;
