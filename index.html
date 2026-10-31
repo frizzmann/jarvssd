@@ -45,6 +45,7 @@ summary{cursor:pointer;font-weight:600}#help ul{margin:8px 0 0;padding-left:18px
 <li>1 barmoq: havoda chizish</li>
 <li>2 barmoq: girdob</li>
 <li>3 barmoq: rang (qo’lni chapga-o’ngga)</li>
+<li>Ikki kaftni birlashtiring (ko’pik), so’ng sekin ajrating: AGASTUS ismi chiqadi</li>
 <li>Mushtlang, so’ng oching: portlash</li>
 <li>Og’izni oching: portlash</li>
 </ul></details>
@@ -53,7 +54,9 @@ summary{cursor:pointer;font-weight:600}#help ul{margin:8px 0 0;padding-left:18px
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {FilesetResolver,HandLandmarker,FaceLandmarker,DrawingUtils} from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm';
 const N=300000,HF=N/2,R=Math.random,PI=Math.PI,PI2=PI*2,$=id=>document.getElementById(id),V3=THREE.Vector3,cl=(x,a,b)=>Math.min(b,Math.max(a,x));
-const NAMES=['Yurak','Saturn','Atirgul','Galaktika','DNK','Halqa','Kapalak','Globus'],NS=NAMES.length;
+const NAMES=['Yurak','Saturn','Atirgul','Galaktika','DNK','Halqa','Kapalak','Globus','AGASTUS'],NS=NAMES.length;
+const NT=(()=>{const c=document.createElement('canvas');c.width=1024;c.height=256;const x=c.getContext('2d');x.fillStyle='#000';x.font='900 170px Arial, sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('AGASTUS',512,132);
+ const d=x.getImageData(0,0,1024,256).data,a=[];for(let y=0;y<256;y+=2)for(let i=0;i<1024;i+=2)if(d[(y*1024+i)*4+3]>128)a.push((i-512)/512,(128-y)/512);return a})();
 const gen=[
  o=>{const t=R()*PI2,k=Math.pow(R(),.35),cx=16*Math.sin(t)**3,cy=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);o[0]=cx*k/17;o[1]=(cy+2)*k/17;o[2]=(R()-.5)*1.3*Math.sqrt(Math.max(0,1-k*k)+.02)},
  o=>{let x,y,z;if(R()<.4){const u=2*R()-1,f=R()*PI2,s=Math.sqrt(1-u*u),r=.4+R()*.04;x=s*Math.cos(f)*r;y=u*r;z=s*Math.sin(f)*r}else{const r=.68+Math.pow(R(),1.3)*.6,a=R()*PI2;x=Math.cos(a)*r;y=(R()-.5)*.02;z=Math.sin(a)*r}const c=Math.cos(.45),s=Math.sin(.45);o[0]=x*c-y*s;o[1]=x*s+y*c;o[2]=z},
@@ -62,7 +65,8 @@ const gen=[
  o=>{let t=(R()-.5)*4*PI,x,z;if(R()<.15){t=Math.round(t/.6)*.6;const a=1-2*R();x=.4*Math.cos(t)*a;z=.4*Math.sin(t)*a}else{const s=R()<.5?0:PI;x=.4*Math.cos(t+s)+(R()-.5)*.03;z=.4*Math.sin(t+s)+(R()-.5)*.03}o[0]=x;o[1]=t*.17;o[2]=z},
  o=>{const t=R()*PI2,r=2+Math.cos(3*t),a=R()*PI2,w=.05*Math.sqrt(R());o[0]=r*Math.cos(2*t)*.3+Math.cos(a)*w;o[1]=r*Math.sin(2*t)*.3+Math.sin(a)*w;o[2]=Math.sin(3*t)*.3+(R()-.5)*.06},
  o=>{const t=R()*12*PI,f=Math.exp(Math.cos(t))-2*Math.cos(4*t)-Math.pow(Math.sin(t/12),5),k=Math.pow(R(),.5);o[0]=Math.sin(t)*f*k/5;o[1]=Math.cos(t)*f*k/5+.1;o[2]=Math.abs(Math.sin(t)*f)*k*.05+(R()-.5)*.04},
- o=>{let u=2*R()-1,f=R()*PI2;if(R()<.5)f=Math.round(f/(PI2/16))*PI2/16;else u=Math.sin(Math.round(Math.asin(u)/(PI/10))*PI/10);const s=Math.sqrt(1-u*u);o[0]=s*Math.cos(f)*.9;o[1]=u*.9;o[2]=s*Math.sin(f)*.9}
+ o=>{let u=2*R()-1,f=R()*PI2;if(R()<.5)f=Math.round(f/(PI2/16))*PI2/16;else u=Math.sin(Math.round(Math.asin(u)/(PI/10))*PI/10);const s=Math.sqrt(1-u*u);o[0]=s*Math.cos(f)*.9;o[1]=u*.9;o[2]=s*Math.sin(f)*.9},
+ o=>{const j=Math.floor(R()*NT.length/2)*2;o[0]=NT[j]+(R()-.5)*.006;o[1]=NT[j+1]+(R()-.5)*.006;o[2]=(R()-.5)*.06}
 ];
 const cache=[];
 function getShape(i){if(!cache[i]){const a=new Float32Array(N*3),o=[0,0,0],f=gen[i];for(let j=0;j<N;j++){f(o);a[j*3]=o[0];a[j*3+1]=o[1];a[j*3+2]=o[2]}cache[i]=a}return cache[i]}
@@ -124,10 +128,10 @@ function setShape(g,i,quiet){const o=G[g];if(o.cur===i)return;const a=geo.attrib
  a.position.needsUpdate=a.aB.needsUpdate=true;U.uT.value[g]=0;o.cur=i;if(!quiet)snd(380+i*70,.15,1.5)}
 const nextShape=(g,d)=>setShape(g,(G[g].cur+d+NS)%NS);
 
-let camOn=false,hand,face,lastFace,lastT=-1,fr=0,seen=false,ptr=false,jaw=false,lastDet=0;
+let cup=false,reveal=false,cupSeen=0,lastTs=1,lastMid=new V3(),camOn=false,hand,face,lastFace,lastT=-1,fr=0,seen=false,ptr=false,jaw=false,lastDet=0;
 const vid=$('v'),ov=$('ov'),octx=ov.getContext('2d');let du;
 const sm=[null,null],prevPalm=[null,null],pend=[{m:'',c:0},{m:'',c:0}],stable=[null,null];
-const MN={con:'yig’ish',draw:'chizish',swirl:'girdob',hue:'rang',open:'shakl',idle:'kutish'};
+const MN={bubble:'ko’pik',name:'ism',con:'yig’ish',draw:'chizish',swirl:'girdob',hue:'rang',open:'shakl',idle:'kutish'};
 function toW(p){return new V3((.5-p.x)*VW,(.5-p.y)*VH,-p.z*3)}
 function hud(md){[0,1].forEach(i=>{const t='Qo’l '+(i+1)+': '+(md[i]?MN[md[i]]+(md[i]==='open'?' · '+NAMES[G[i].cur]:''):'yo’q'),e=$('h'+i);if(e.textContent!==t)e.textContent=t})}
 
@@ -155,13 +159,30 @@ function an(i,l0,dt){
  if(m==='open'){if(o.wasCon)boom();if(Math.abs(vx)>2.4&&now>o.swipeT){o.swipeT=now+700;nextShape(i,vx>0?1:-1)}}
  o.wasCon=m==='con';return m;
 }
+function pair(n,md){
+ const now=performance.now();
+ if(n===2){
+  const a=G[0],b=G[1],d=Math.hypot(a.tc.x-b.tc.x,a.tc.y-b.tc.y),mid=a.tc.clone().add(b.tc).multiplyScalar(.5);
+  if(!cup&&!reveal&&d<.16*VW){cup=true;snd(180,.3,.6)}
+  if(cup){cupSeen=now;lastMid.copy(mid);
+   if(d>.3*VW){cup=false;reveal=true;setShape(0,8);setShape(1,8,true);exp=.5;snd(300,.6,3)}
+   else{[a,b].forEach(o=>{o.tc.copy(mid);o.tcon=.8;o.twave=1;o.tswirl=.4;o.ts=1;o.thue=null});md[0]=md[1]='bubble';return true}}
+  if(reveal){
+   if(d<.12*VW)reveal=false;
+   else{cupSeen=now;lastMid.copy(mid);lastTs=Math.min(d*.45,VW*.45);[a,b].forEach(o=>{o.tc.copy(mid);o.ts=lastTs;o.tcon=0;o.twave=0;o.tswirl=0;o.thue=null;o.tpit=0;o.tyaw=0});md[0]=md[1]='name';return true}}
+ }else if((cup||reveal)&&now-cupSeen<(cup?1500:500)){
+  [G[0],G[1]].forEach(o=>{o.tc.copy(lastMid);o.tcon=cup?.8:0;o.twave=cup?1:0;o.tswirl=cup?.4:0;o.ts=cup?1:lastTs;o.thue=null;o.tyaw=0;o.tpit=0});
+  md[0]=md[1]=cup?'bubble':'name';return true;
+ }else{cup=false;reveal=false}
+}
 function useHands(r,dt){
  U.uOn.value[0]=U.uOn.value[1]=0;
  const hs=r.landmarks.slice(0,2).sort((a,b)=>b[9].x-a[9].x),md=[null,null];
  hs.forEach((l,i)=>md[i]=an(i,l,dt));
  for(const i of [0,1])if(!hs[i]){sm[i]=null;lastP[i]=null;prevPalm[i]=null;stable[i]=null;pend[i]={m:'',c:0}}
- if(hs.length===1){const a=G[0],b=G[1];b.tc.copy(a.tc);b.ts=a.ts;b.tcon=a.tcon;b.tyaw=a.tyaw;b.tpit=a.tpit;b.twave=a.twave;b.tswirl=a.tswirl;b.thue=a.thue;b.wasCon=a.wasCon;setShape(1,a.cur,true)}
- seen=hs.length>0;hud(md);
+ const hold=pair(hs.length,md);
+ if(hs.length===1&&!hold){const a=G[0],b=G[1];b.tc.copy(a.tc);b.ts=a.ts;b.tcon=a.tcon;b.tyaw=a.tyaw;b.tpit=a.tpit;b.twave=a.twave;b.tswirl=a.tswirl;b.thue=a.thue;b.wasCon=a.wasCon;setShape(1,a.cur,true)}
+ seen=hs.length>0||!!hold;hud(md);
 }
 function useFace(r){
  const f=r.faceLandmarks[0];if(!f)return;
